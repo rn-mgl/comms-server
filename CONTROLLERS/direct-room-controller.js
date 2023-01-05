@@ -10,7 +10,7 @@ const addFriend = async (req, res) => {
 
   const roomCode = crypto.randomBytes(50).toString("hex");
 
-  const data = await DirectRoom.addUser(email, id, roomCode);
+  const data = await DirectRoom.addUserEmail(email, id, roomCode);
 
   if (!data) {
     throw new BadRequestError(`Error in adding and creating room.`);
@@ -81,19 +81,6 @@ const seenRoom = async (req, res) => {
   res.status(StatusCodes.OK).json(data);
 };
 
-const unseenRoom = async (req, res) => {
-  const { room_code } = req.params;
-  const { member_id } = req.body;
-
-  const data = await RoomFunctions.seeDirectRoom(member_id, room_code);
-
-  if (!data) {
-    throw new BadRequestError(`Error in entering room.`);
-  }
-
-  res.status(StatusCodes.OK).json(data);
-};
-
 const closeRoom = async (req, res) => {
   const { id } = req.user;
   const { room_code } = req.params;
@@ -107,12 +94,52 @@ const closeRoom = async (req, res) => {
   res.status(StatusCodes.OK).json(data);
 };
 
+const muteRoom = async (req, res) => {
+  const { id } = req.user;
+  const { room_code } = req.params;
+
+  const data = await RoomFunctions.muteDirectRoom(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in muting the room. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
+const blockRoom = async (req, res) => {
+  const { id } = req.user;
+  const { room_code } = req.body;
+
+  const data = await RoomFunctions.blockDirectRoom(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in blocking the room. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
+const getAllBlockedRoom = async (req, res) => {
+  const { id } = req.user;
+
+  const data = await DirectRoom.getAllBlockedRoom(id);
+
+  if (!data) {
+    throw new BadRequestError(`Error in getting all blocked rooms. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
 module.exports = {
   addFriend,
   removeFriend,
   getDirectRoom,
   getAllDirectRoom,
   seenRoom,
-  unseenRoom,
   closeRoom,
+  muteRoom,
+  blockRoom,
+  getAllBlockedRoom,
 };

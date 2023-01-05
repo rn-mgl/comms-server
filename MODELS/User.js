@@ -31,7 +31,7 @@ class User {
     }
   }
 
-  static async updateUser(user_id, name, surname, password, in_comms_name) {
+  static async updateUser(user_id, name, surname, password, image, in_comms_name) {
     try {
       const sql = `UPDATE users SET ? 
                     WHERE user_id = '${user_id}'`;
@@ -40,7 +40,93 @@ class User {
         name,
         surname,
         password,
+        image,
         in_comms_name,
+      };
+
+      const [data, _] = await db.query(sql, updateValues);
+
+      return data;
+    } catch (error) {
+      console.log(error + "   update user   ");
+    }
+  }
+
+  static async updateUserName(user_id, name) {
+    try {
+      const sql = `UPDATE users SET ? 
+                    WHERE user_id = '${user_id}'`;
+
+      const updateValues = {
+        name,
+      };
+
+      const [data, _] = await db.query(sql, updateValues);
+
+      return data;
+    } catch (error) {
+      console.log(error + "   update user   ");
+    }
+  }
+
+  static async updateUserSurname(user_id, surname) {
+    try {
+      const sql = `UPDATE users SET ? 
+                    WHERE user_id = '${user_id}'`;
+
+      const updateValues = {
+        surname,
+      };
+
+      const [data, _] = await db.query(sql, updateValues);
+
+      return data;
+    } catch (error) {
+      console.log(error + "   update user   ");
+    }
+  }
+
+  static async updateUserICN(user_id, in_comms_name) {
+    try {
+      const sql = `UPDATE users SET ? 
+                    WHERE user_id = '${user_id}'`;
+
+      const updateValues = {
+        in_comms_name,
+      };
+
+      const [data, _] = await db.query(sql, updateValues);
+
+      return data;
+    } catch (error) {
+      console.log(error + "   update user   ");
+    }
+  }
+
+  static async updateUserPassword(user_id, password) {
+    try {
+      const sql = `UPDATE users SET ? 
+                    WHERE user_id = '${user_id}'`;
+
+      const updateValues = {
+        password,
+      };
+
+      const [data, _] = await db.query(sql, updateValues);
+
+      return data;
+    } catch (error) {
+      console.log(error + "   update user   ");
+    }
+  }
+
+  static async updateUserImage(user_id, image) {
+    try {
+      const sql = `UPDATE users SET ? 
+                    WHERE user_id = '${user_id}'`;
+
+      const updateValues = {
+        image,
       };
 
       const [data, _] = await db.query(sql, updateValues);
@@ -120,6 +206,23 @@ class User {
       return data;
     } catch (error) {
       console.log(error + "   active user   ");
+    }
+  }
+
+  static async getAllUsers(id) {
+    try {
+      const sql = `SELECT u.user_id, CONCAT(u.name, " ", u.surname) AS name, u.email, u.image
+                  FROM users u
+                  WHERE u.user_id <> ${id}
+                  AND NOT EXISTS (SELECT * FROM direct_requests dr 
+                                 WHERE (dr.request_by = '${id}' 
+                                    AND dr.request_to = u.user_id)
+                                 OR (dr.request_by = u.user_id 
+                                    AND dr.request_to = '${id}'))`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   get all users   ");
     }
   }
 }

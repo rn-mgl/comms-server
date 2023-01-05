@@ -24,6 +24,8 @@ const directMessagesRouter = require("./ROUTES/direct-messages-routes");
 const groupMessagesRouter = require("./ROUTES/group-message-routes");
 const notesRouter = require("./ROUTES/notes-router");
 const uploadRouter = require("./ROUTES/upload-router");
+const directRequestRouter = require("./ROUTES/direct-request-routes");
+const groupRequestRouter = require("./ROUTES/group-request-routes");
 
 const authenticationMiddleware = require("./MIDDLEWARE/auth-middleware");
 const notFoundMiddleware = require("./MIDDLEWARE/not-found-middleware");
@@ -72,6 +74,8 @@ app.use("/dm", authenticationMiddleware, directMessagesRouter);
 app.use("/gm", authenticationMiddleware, groupMessagesRouter);
 app.use("/n", authenticationMiddleware, notesRouter);
 app.use("/uf", authenticationMiddleware, uploadRouter);
+app.use("/drreq", authenticationMiddleware, directRequestRouter);
+app.use("/grreq", authenticationMiddleware, groupRequestRouter);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

@@ -5,12 +5,12 @@ const crypto = require("crypto");
 const RoomFunctions = require("../MODELS/FUNCTIONS/RoomFunctions");
 
 const createGroupRoom = async (req, res) => {
-  const { group_name } = req.body;
+  const { group_name, is_public } = req.body;
   const { id } = req.user;
 
   const roomCode = crypto.randomBytes(50).toString("hex");
 
-  const group = new GroupRoom(roomCode, id, group_name);
+  const group = new GroupRoom(roomCode, id, group_name, is_public);
 
   const data = await group.createGroupRoom();
 
@@ -29,6 +29,11 @@ const addGroupMember = async (req, res) => {
 
   if (memberCheck[0].member_already) {
     const reAddData = await GroupRoom.reAddMember(member_email, room_code);
+
+    if (!reAddData.affectedRows) {
+      throw new BadRequestError(`This user decided to not be involved in this group any longer.`);
+    }
+
     res.status(StatusCodes.OK).json(reAddData);
     return;
   }
@@ -57,9 +62,9 @@ const removeMember = async (req, res) => {
 
 const leaveGroup = async (req, res) => {
   const { id } = req.user;
-  const { room_id } = req.body;
+  const { room_code } = req.body;
 
-  const data = await GroupRoom.leaveGroup(id, room_id);
+  const data = await GroupRoom.leaveGroup(id, room_code);
 
   if (!data) {
     throw new BadRequestError(`Error in leaving group. Try again later.`);
@@ -95,14 +100,32 @@ const getGroupRoom = async (req, res) => {
 
 const getAllGroupRoom = async (req, res) => {
   const { id } = req.user;
+  const { group_type } = req.query;
 
-  const data = await GroupRoom.getAllGroupRoom(id);
-
-  if (!data) {
-    throw new BadRequestError(`Error in getting all your groups.`);
+  if (group_type === "all") {
+    const data = await GroupRoom.getAllGroupRoom(id);
+    if (!data) {
+      throw new BadRequestError(`Error in getting all your groups.`);
+    }
+    res.status(StatusCodes.OK).json(data);
+    return;
+  } else if (group_type === "public") {
+    const data = await GroupRoom.getAllPublicGroupRoom(id);
+    if (!data) {
+      throw new BadRequestError(`Error in getting all public rooms. Try again later.`);
+    }
+    res.status(StatusCodes.OK).json(data);
+    return;
+  } else if (group_type === "private") {
+    const data = await GroupRoom.getAllPrivateGroupRoom(id);
+    if (!data) {
+      throw new BadRequestError(`Error in getting all public rooms. Try again later.`);
+    }
+    res.status(StatusCodes.OK).json(data);
+    return;
+  } else {
+    throw new BadRequestError(`This type of public group type is not applicable.`);
   }
-
-  res.status(StatusCodes.OK).json(data);
 };
 
 const seenRoom = async (req, res) => {
@@ -110,19 +133,6 @@ const seenRoom = async (req, res) => {
   const { id } = req.user;
 
   const data = await RoomFunctions.seeGroupRoom(id, room_id);
-
-  if (!data) {
-    throw new BadRequestError(`Error in entering room.`);
-  }
-
-  res.status(StatusCodes.OK).json(data);
-};
-
-const unseenRoom = async (req, res) => {
-  const { room_id } = req.params;
-  const { id } = req.user;
-
-  const data = await RoomFunctions.unseeGroupRoom(id, room_id);
 
   if (!data) {
     throw new BadRequestError(`Error in entering room.`);
@@ -144,6 +154,64 @@ const closeRoom = async (req, res) => {
   res.status(StatusCodes.OK).json(data);
 };
 
+const muteRoom = async (req, res) => {
+  const { id } = req.user;
+  const { room_code } = req.body;
+
+  const data = await RoomFunctions.muteGroupRoom(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in muting room. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
+const blockRoom = async (req, res) => {
+  const { id } = req.user;
+  const { room_code } = req.body;
+
+  const data = await RoomFunctions.blockGroupRoom(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in blocking room. Try again later.`);
+  }
+
+  const leaveGroup = await GroupRoom.leaveGroup(id, room_code);
+
+  if (!leaveGroup) {
+    throw new BadRequestError(`Error in leaving room. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
+const joinRoom = async (req, res) => {
+  const { id, email } = req.user;
+  const { room_code } = req.params;
+
+  const check = await GroupRoom.checkIfMember(email, room_code);
+
+  if (check[0].member_already) {
+    const reAddData = await GroupRoom.reAddMember(email, room_code);
+
+    if (!reAddData) {
+      throw new BadRequestError(`Error in re-joining room. Try again later.`);
+    }
+
+    res.status(StatusCodes.OK).json(reAddData);
+    return;
+  }
+
+  const data = await GroupRoom.joinRoom(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in joining room. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
 module.exports = {
   createGroupRoom,
   addGroupMember,
@@ -152,6 +220,8 @@ module.exports = {
   getGroupRoom,
   getAllGroupRoom,
   seenRoom,
-  unseenRoom,
   closeRoom,
+  muteRoom,
+  blockRoom,
+  joinRoom,
 };

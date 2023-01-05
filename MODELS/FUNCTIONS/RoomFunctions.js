@@ -95,12 +95,14 @@ class RoomFunctions {
     }
   }
 
-  static async unseeDirectRoom(receiver_id, room_code) {
+  static async unseeDirectRoom(member_id, room_code) {
     try {
       const sql = `UPDATE direct_room SET ?
                   WHERE room_code = '${room_code}'
-                  AND member_id <> '${receiver_id}'
-                  AND is_open = '0'`;
+                  AND member_id = '${member_id}'
+                  AND is_open = '0'
+                  AND is_muted = '0'
+                  AND is_blocked = '0'`;
       const updateValues = { is_seen: 0 };
       const [data, _] = await db.query(sql, updateValues);
       return data;
@@ -128,12 +130,62 @@ class RoomFunctions {
       const sql = `UPDATE group_room SET ?
                   WHERE room_code = '${room_code}'
                   AND member_id <> '${member_id}'
-                  AND is_open = '0'`;
+                  AND is_open = '0'
+                  AND is_muted = '0'
+                  AND is_blocked = '0'`;
       const updateValues = { is_seen: 0 };
       const [data, _] = await db.query(sql, updateValues);
       return data;
     } catch (error) {
       console.log(error + "   seen room   ");
+    }
+  }
+
+  static async muteDirectRoom(member_id, room_code) {
+    try {
+      const sql = `UPDATE direct_room SET is_muted = (CASE WHEN is_muted = '1' THEN '0' ELSE '1' END)
+                  WHERE member_id <> '${member_id}'
+                  AND room_code = '${room_code}';`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   mute direct room   ");
+    }
+  }
+
+  static async muteGroupRoom(member_id, room_code) {
+    try {
+      const sql = `UPDATE group_room SET is_muted = (CASE WHEN is_muted = '1' THEN '0' ELSE '1' END)
+                  WHERE member_id = '${member_id}'
+                  AND room_code = '${room_code}';`;
+      const updateValues = { is_muted: 1 };
+      const [data, _] = await db.query(sql, updateValues);
+      return data;
+    } catch (error) {
+      console.log(error + "   mute direct room   ");
+    }
+  }
+
+  static async blockDirectRoom(id, room_code) {
+    try {
+      const sql = `UPDATE direct_room SET is_blocked = (CASE WHEN is_blocked = '${id}' THEN '0' ELSE '${id}' END)
+                  WHERE room_code = '${room_code}';`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   mute direct room   ");
+    }
+  }
+
+  static async blockGroupRoom(member_id, room_code) {
+    try {
+      const sql = `UPDATE group_room SET is_blocked = (CASE WHEN is_blocked = '1' THEN '0' ELSE '1' END)
+                  WHERE member_id = '${member_id}'
+                  AND room_code = '${room_code}';`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   mute direct room   ");
     }
   }
 }

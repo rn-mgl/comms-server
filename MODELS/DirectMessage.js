@@ -2,13 +2,13 @@ const db = require("../DB/connection");
 const RoomFunctions = require("./FUNCTIONS/RoomFunctions");
 
 class DirectMessage {
-  constructor(sender_id, receiver_id, room_id, room_code, message_content, message_file) {
+  constructor(sender_id, room_id, room_code, message_content, message_file, reply_to) {
     this.sender_id = sender_id;
-    this.receiver_id = receiver_id;
     this.room_id = room_id;
     this.room_code = room_code;
     this.message_content = message_content;
     this.message_file = message_file;
+    this.reply_to = reply_to;
   }
 
   async sendMessage() {
@@ -16,38 +16,17 @@ class DirectMessage {
       const sql = `INSERT INTO direct_messages SET ?`;
       const insertValues = {
         sender_id: this.sender_id,
-        receiver_id: this.receiver_id,
         room_id: this.room_id,
         room_code: this.room_code,
         message_content: this.message_content,
         message_file: this.message_file,
+        reply_to: this.reply_to,
       };
       const [data, _] = await db.query(sql, insertValues);
-      const updateRoom = await RoomFunctions.updateDirectRoomDate(this.room_code);
+
       return data;
     } catch (error) {
       console.log(error + "   send message   ");
-    }
-  }
-
-  async replyToMessage(message_id) {
-    try {
-      const sql = `INSERT INTO direct_messages SET ?`;
-      const insertValues = {
-        sender_id: this.sender_id,
-        receiver_id: this.receiver_id,
-        room_id: this.room_id,
-        room_code: this.room_code,
-        message_content: this.message_content,
-        message_file: this.message_file,
-        reply_to: message_id,
-      };
-
-      const [data, _] = await db.query(sql, insertValues);
-      const updateRoom = await RoomFunctions.updateDirectRoomDate(this.room_code);
-      return data;
-    } catch (error) {
-      console.log(error + "   reply to message   ");
     }
   }
 
@@ -82,11 +61,12 @@ class DirectMessage {
 
   static async getAllDirectMessage(room_code, limit) {
     try {
-      const sql = `SELECT dm.message_id, dm.sender_id, dm.receiver_id, dm.room_id, dm.room_code, dm.message_content, dm.message_file, dm.is_visible,
-                  dm.reply_to, dm.date_created, s.name AS sender_name, r.name AS receiver_name FROM direct_messages dm
+      const sql = `SELECT dm.message_id, dm.sender_id, dm.room_id, dm.room_code, dm.message_content, dm.message_file, dm.is_visible,
+                  dm.date_created, s.name AS sender_name, r.message_content AS reply_to FROM direct_messages dm
                   INNER JOIN users s ON s.user_id = dm.sender_id
-                  INNER JOIN users r ON r.user_id = dm.receiver_id
-                  WHERE room_code = '${room_code}'
+                  LEFT JOIN direct_messages r ON dm.reply_to = r.message_id
+                  WHERE dm.room_code = '${room_code}'
+                  AND dm.is_visible = '1'
                   ORDER BY date_created DESC
                   LIMIT 0, ${limit}`;
       const [data, _] = await db.execute(sql);

@@ -37,7 +37,7 @@ const signUpUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { candidate_email, candidate_password } = req.body;
+  const { candidate_email, candidate_password } = req.query;
 
   const findEmail = await User.findByEmail(candidate_email);
 

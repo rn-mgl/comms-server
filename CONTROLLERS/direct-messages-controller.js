@@ -6,26 +6,33 @@ const RoomFunctions = require("../MODELS/FUNCTIONS/RoomFunctions");
 const sendMessage = async (req, res) => {
   const { id } = req.user;
   const { room_code } = req.params;
-  const { receiver_id, room_id, message_content, message_file } = req.body;
+  const { room_id, message_content, message_file, reply_to } = req.body;
 
   const message = new DirectMessage(
     id,
-    receiver_id,
     room_id,
     room_code,
     message_content,
-    message_file
+    message_file,
+    reply_to
   );
+
   const data = await message.sendMessage();
 
   if (!data) {
     throw new BadRequestError(`Error in sending message. Try again later.`);
   }
 
-  const unseeRoom = RoomFunctions.unseeDirectRoom(receiver_id, room_code);
+  const unseeRoom = await RoomFunctions.unseeDirectRoom(id, room_code);
 
   if (!unseeRoom) {
     throw new BadRequestError(`Error in unseeing message. Try again later.`);
+  }
+
+  const updateRoom = await RoomFunctions.updateDirectRoomDate(room_code);
+
+  if (!updateRoom) {
+    throw new BadRequestError(`Error in updating room. Try again later.`);
   }
 
   res.status(StatusCodes.OK).json(data);
@@ -38,29 +45,6 @@ const unsendMessage = async (req, res) => {
 
   if (!data) {
     throw new BadRequestError(`Error in unsending message. Try again later.`);
-  }
-
-  res.status(StatusCodes.OK).json(data);
-};
-
-const replyToMessage = async (req, res) => {
-  const { id } = req.user;
-  const { message_id } = req.params;
-  const { receiver_id, room_id, room_code, message_content, message_file } = req.body;
-
-  const message = new DirectMessage(
-    id,
-    receiver_id,
-    room_id,
-    room_code,
-    message_content,
-    message_file
-  );
-
-  const data = await message.replyToMessage(message_id);
-
-  if (!data) {
-    throw new BadRequestError(`Error in replying to message.`);
   }
 
   res.status(StatusCodes.OK).json(data);
@@ -106,7 +90,6 @@ const getLatestDirectMessage = async (req, res) => {
 module.exports = {
   sendMessage,
   unsendMessage,
-  replyToMessage,
   deleteMessage,
   getAllDirectMessage,
   getLatestDirectMessage,
