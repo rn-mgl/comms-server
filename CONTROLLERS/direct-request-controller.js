@@ -3,6 +3,7 @@ const { BadRequestError } = require("../ERRORS");
 const DirectRequest = require("../MODELS/DirectRequest");
 const DirectRoom = require("../MODELS/DirectRoom");
 const crypto = require("crypto");
+const RequestFunctions = require("../MODELS/FUNCTIONS/RequestFunctions");
 
 const createRequest = async (req, res) => {
   const { id } = req.user;
@@ -85,6 +86,12 @@ const getAllRequest = async (req, res) => {
 
     if (!data) {
       throw new BadRequestError(`Error in getting all received requests.`);
+    }
+
+    const seeRequests = await RequestFunctions.seeDirectRequests(id);
+
+    if (!seeRequests) {
+      throw new BadRequestError(`Error in viewing requests.`);
     }
 
     res.status(StatusCodes.OK).json(data);

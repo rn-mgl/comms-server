@@ -112,6 +112,18 @@ const getAllUsers = async (req, res) => {
   res.status(StatusCodes.OK).json(data);
 };
 
+const getAllUsersForRequest = async (req, res) => {
+  const { id } = req.user;
+
+  const data = await User.getAllUsersForRequest(id);
+
+  if (!data) {
+    throw new BadRequestError(`Error in getting all users. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
 const getUser = async (req, res) => {
   const { user_id } = req.params;
 
@@ -124,4 +136,24 @@ const getUser = async (req, res) => {
   res.status(StatusCodes.OK).json(data[0]);
 };
 
-module.exports = { updateUser, logoutUser, getAllUsers, getUser };
+const getAllFriends = async (req, res) => {
+  const { id } = req.user;
+  const { room_code } = req.query;
+
+  const data = await User.getAllFriends(id, room_code);
+
+  if (!data) {
+    throw new BadRequestError(`Error in getting all friends. Try again later.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
+module.exports = {
+  updateUser,
+  logoutUser,
+  getAllUsersForRequest,
+  getUser,
+  getAllFriends,
+  getAllUsers,
+};

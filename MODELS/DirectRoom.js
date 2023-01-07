@@ -78,7 +78,7 @@ class DirectRoom {
 
                   INNER JOIN users u ON u.user_id = d.member_id
                   
-                  WHERE room_code IN (SELECT room_code FROM direct_room
+                  WHERE d.room_code IN (SELECT room_code FROM direct_room
                                       WHERE member_id = '${currUser}')
                   AND member_id <> '${currUser}'
                   AND is_blocked = '0'

@@ -1,6 +1,9 @@
 const { StatusCodes } = require("http-status-codes");
 const { BadRequestError } = require("../ERRORS");
 const GroupRequest = require("../MODELS/GroupRequest");
+const RequestFunctions = require("../MODELS/FUNCTIONS/RequestFunctions");
+const GroupRoom = require("../MODELS/GroupRoom");
+const RoomFunctions = require("../MODELS/FUNCTIONS/RoomFunctions");
 
 const createRequest = async (req, res) => {
   const { id } = req.user;
@@ -37,6 +40,12 @@ const getAllRequest = async (req, res) => {
       throw new BadRequestError(`Error in getting received requests.`);
     }
 
+    const seeRequests = await RequestFunctions.seeDirectRequests(id);
+
+    if (!seeRequests) {
+      throw new BadRequestError(`Error in viewing requests.`);
+    }
+
     res.status(StatusCodes.OK).json(data);
     return;
   } else {
@@ -58,14 +67,39 @@ const cancelRequest = async (req, res) => {
 };
 
 const acceptRequest = async (req, res) => {
+  // accept the request sent to me
   const { id } = req.user;
-  const { request_id } = req.params;
-  const { request_by, room_code } = req.body;
+  const { request_by, request_id, room_code } = req.body;
 
   const data = await GroupRequest.acceptRequest(id, request_by, request_id, room_code);
 
   if (!data) {
     throw new BadRequestError(`Error in accepting request. Try again later.`);
+  }
+
+  const check = await GroupRoom.checkIfMember(id, room_code);
+
+  if (check[0].member_already) {
+    const reAdd = await GroupRoom.reAddMember(id, room_code);
+
+    if (!reAdd) {
+      throw new BadRequestError(`Error in adding member.`);
+    }
+
+    res.status(StatusCodes.OK).json(data);
+    return;
+  }
+
+  const acceptMember = await GroupRoom.acceptGroupMember(id, room_code);
+
+  if (!acceptMember) {
+    throw new BadRequestError(`Error in accepting request. Try again later.`);
+  }
+
+  const updateRoom = await RoomFunctions.updateGroupRoomDate(room_code);
+
+  if (!updateRoom) {
+    throw new BadRequestError(`Error in updating room.`);
   }
 
   res.status(StatusCodes.OK).json(data);
@@ -74,9 +108,9 @@ const acceptRequest = async (req, res) => {
 const rejectRequest = async (req, res) => {
   const { id } = req.user;
 
-  const { request_by, room_code, request_id } = req.body;
+  const { request_by, request_id } = req.body;
 
-  const data = await GroupRequest.rejectRequest(id, request_by, request_id, room_code);
+  const data = await GroupRequest.rejectRequest(id, request_by, request_id);
 
   if (!data) {
     throw new BadRequestError(`Error in rejecting request. Try again later.`);

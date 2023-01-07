@@ -4,9 +4,10 @@ const router = express.Router();
 
 router
   .route("/")
+  .patch(controller.acceptRequest)
   .post(controller.createRequest)
-  .patch(controller.rejectRequest)
+  .delete(controller.rejectRequest)
   .get(controller.getAllRequest);
-router.route("/:request_id").patch(controller.acceptRequest).delete(controller.cancelRequest);
+router.route("/:request_id").delete(controller.cancelRequest);
 
 module.exports = router;

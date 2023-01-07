@@ -34,6 +34,21 @@ class DirectRequest {
     }
   }
 
+  static async deleteRequest(request_by, request_to) {
+    try {
+      const sql = `DELETE FROM direct_requests
+                  WHERE (request_to = '${request_to}'
+                  AND request_by = '${request_by}')
+                  OR
+                  (request_by = '${request_to}'
+                  AND request_to = '${request_by}')`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   cancel request   ");
+    }
+  }
+
   static async acceptRequest(request_to, request_by, request_id) {
     try {
       const sql = `UPDATE direct_requests SET ?

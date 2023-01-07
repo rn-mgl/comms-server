@@ -78,10 +78,11 @@ class DirectMessage {
 
   static async getLatestDirectMessage(room_code) {
     try {
-      const sql = `SELECT * FROM direct_messages
-                  WHERE room_code = '${room_code}'
-                  AND is_visible = '1'
-                  ORDER BY date_created DESC
+      const sql = `SELECT dm.message_content, u.name FROM direct_messages dm
+                  INNER JOIN users u ON u.user_id = dm.sender_id
+                  WHERE dm.room_code = '${room_code}'
+                  AND dm.is_visible = '1'
+                  ORDER BY dm.date_created DESC
                   LIMIT 1`;
       const [data, _] = await db.execute(sql);
       return data;

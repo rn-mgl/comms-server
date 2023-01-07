@@ -209,7 +209,7 @@ class User {
     }
   }
 
-  static async getAllUsers(id) {
+  static async getAllUsersForRequest(id) {
     try {
       const sql = `SELECT u.user_id, CONCAT(u.name, " ", u.surname) AS name, u.email, u.image
                   FROM users u
@@ -217,12 +217,50 @@ class User {
                   AND NOT EXISTS (SELECT * FROM direct_requests dr 
                                  WHERE (dr.request_by = '${id}' 
                                     AND dr.request_to = u.user_id)
-                                 OR (dr.request_by = u.user_id 
+                                    OR (dr.request_by = u.user_id 
                                     AND dr.request_to = '${id}'))`;
       const [data, _] = await db.execute(sql);
       return data;
     } catch (error) {
       console.log(error + "   get all users   ");
+    }
+  }
+
+  static async getAllFriends(id, room_code) {
+    try {
+      const sql = `SELECT u.user_id, u.email, u.image, CONCAT(u.name, " ", u.surname) AS name, u.in_comms_name 
+                  FROM direct_room dr
+                  INNER JOIN users u ON u.user_id = dr.member_id
+                  WHERE dr.member_id <> '${id}'
+                  AND dr.room_code IN (SELECT room_code 
+                                        FROM direct_room ar
+                                        WHERE member_id = '${id}')
+                  AND NOT EXISTS (SELECT 1 FROM group_room gr
+                                  WHERE gr.member_id = u.user_id
+                                  AND gr.is_member = '1'
+                                  AND gr.room_code = '${room_code}')`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   get all friends   ");
+    }
+  }
+
+  static async getAllUsers(id) {
+    try {
+      const sql = `SELECT u.user_id, u.email, u.image, CONCAT(u.name, " ", u.surname) AS name, u.in_comms_name 
+                  FROM users u
+                  WHERE u.user_id <> '${id}'
+                  AND NOT EXISTS (SELECT 1 FROM group_requests 
+                                  WHERE request_by = '${id}'
+                                  AND request_to = u.user_id)
+                  AND NOT EXISTS (SELECT 1 FROM group_room
+                                  WHERE member_id = u.user_id
+                                  AND is_member = '1')`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   get all friends   ");
     }
   }
 }

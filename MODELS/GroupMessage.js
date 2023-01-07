@@ -80,11 +80,24 @@ class GroupMessage {
 
   static async getLatestGroupMessage(room_code) {
     try {
-      const sql = `SELECT * FROM group_messages
-                  WHERE room_code = '${room_code}'
-                  AND is_visible = '1'
-                  ORDER BY date_created DESC
+      const sql = `SELECT gm.message_content, u.name FROM group_messages gm
+                  INNER JOIN users u ON u.user_id = gm.sender_id
+                  WHERE gm.room_code = '${room_code}'
+                  AND gm.is_visible = '1'
+                  ORDER BY gm.date_created DESC
                   LIMIT 1`;
+
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   get latest group message   ");
+    }
+  }
+
+  static async deleteGroupMessage(room_code) {
+    try {
+      const sql = `DELETE FROM group_messages
+                  WHERE room_code = '${room_code}'`;
       const [data, _] = await db.execute(sql);
       return data;
     } catch (error) {

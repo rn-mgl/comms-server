@@ -23,10 +23,16 @@ const sendMessage = async (req, res) => {
     throw new BadRequestError(`Error in sending message. Try again later.`);
   }
 
-  const unseeRoom = await RoomFunctions.unseeDirectRoom(id, room_code);
+  const unseeMyRoom = await RoomFunctions.unseeDirectRoom(id, room_code);
 
-  if (!unseeRoom) {
+  if (!unseeMyRoom) {
     throw new BadRequestError(`Error in unseeing message. Try again later.`);
+  }
+
+  const seeOppositeRoom = await RoomFunctions.seeDirectRoom(id, room_code);
+
+  if (!seeOppositeRoom) {
+    throw new BadRequestError(`Error in seeing message. Try again later.`);
   }
 
   const updateRoom = await RoomFunctions.updateDirectRoomDate(room_code);
@@ -84,7 +90,7 @@ const getLatestDirectMessage = async (req, res) => {
     throw new BadRequestError(`Error in getting message.`);
   }
 
-  res.status(StatusCodes.OK).json(data);
+  res.status(StatusCodes.OK).json(data[0]);
 };
 
 module.exports = {

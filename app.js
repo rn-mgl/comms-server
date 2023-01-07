@@ -22,10 +22,10 @@ const groupRoomRouter = require("./ROUTES/group-room-routes");
 const allRoomRouter = require("./ROUTES/all-room-routes");
 const directMessagesRouter = require("./ROUTES/direct-messages-routes");
 const groupMessagesRouter = require("./ROUTES/group-message-routes");
-const notesRouter = require("./ROUTES/notes-router");
 const uploadRouter = require("./ROUTES/upload-router");
 const directRequestRouter = require("./ROUTES/direct-request-routes");
 const groupRequestRouter = require("./ROUTES/group-request-routes");
+const allRequestRouter = require("./ROUTES/all-request-routes");
 
 const authenticationMiddleware = require("./MIDDLEWARE/auth-middleware");
 const notFoundMiddleware = require("./MIDDLEWARE/not-found-middleware");
@@ -67,15 +67,18 @@ io.on("connection", (socket) => {
 
 app.use("/auth", authRouter);
 app.use("/user", authenticationMiddleware, userRouter);
+
 app.use("/dr", authenticationMiddleware, directRoomRouter);
 app.use("/gr", authenticationMiddleware, groupRoomRouter);
 app.use("/ar", authenticationMiddleware, allRoomRouter);
 app.use("/dm", authenticationMiddleware, directMessagesRouter);
 app.use("/gm", authenticationMiddleware, groupMessagesRouter);
-app.use("/n", authenticationMiddleware, notesRouter);
+
 app.use("/uf", authenticationMiddleware, uploadRouter);
+
 app.use("/drreq", authenticationMiddleware, directRequestRouter);
 app.use("/grreq", authenticationMiddleware, groupRequestRouter);
+app.use("/arreq", authenticationMiddleware, allRequestRouter);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

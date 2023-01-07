@@ -3,6 +3,8 @@ const { BadRequestError, NotFoundError } = require("../ERRORS");
 const DirectRoom = require("../MODELS/DirectRoom");
 const crypto = require("crypto");
 const RoomFunctions = require("../MODELS/FUNCTIONS/RoomFunctions");
+const DirectRequest = require("../MODELS/DirectRequest");
+const DirectMessage = require("../MODELS/DirectMessage");
 
 const addFriend = async (req, res) => {
   const { email } = req.body;
@@ -20,11 +22,18 @@ const addFriend = async (req, res) => {
 };
 
 const removeFriend = async (req, res) => {
-  const { room_code } = req.body;
+  const { room_code, removed_friend } = req.body;
+  const { id } = req.user;
 
   const data = await DirectRoom.unfriendUser(room_code);
 
   if (!data) {
+    throw new BadRequestError(`Error in unfriending. Try again later.`);
+  }
+
+  const unfriend = await DirectRequest.deleteRequest(id, removed_friend);
+
+  if (!unfriend) {
     throw new BadRequestError(`Error in unfriending. Try again later.`);
   }
 
@@ -96,7 +105,7 @@ const closeRoom = async (req, res) => {
 
 const muteRoom = async (req, res) => {
   const { id } = req.user;
-  const { room_code } = req.params;
+  const { room_code } = req.body;
 
   const data = await RoomFunctions.muteDirectRoom(id, room_code);
 

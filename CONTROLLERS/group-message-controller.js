@@ -21,6 +21,12 @@ const sendMessage = async (req, res) => {
     throw new BadRequestError(`Error in unseeing room. Try again later.`);
   }
 
+  const seeOppositeRoom = await RoomFunctions.seeGroupRoom(id, room_code);
+
+  if (!seeOppositeRoom) {
+    throw new BadRequestError(`Error in seeing room. Try again later.`);
+  }
+
   const updateRoom = await RoomFunctions.updateGroupRoomDate(room_code);
 
   if (!updateRoom) {
@@ -76,7 +82,7 @@ const getLatestGroupMessage = async (req, res) => {
     throw new BadRequestError(`Error in getting message.`);
   }
 
-  res.status(StatusCodes.OK).json(data);
+  res.status(StatusCodes.OK).json(data[0]);
 };
 
 module.exports = {

@@ -100,7 +100,6 @@ class RoomFunctions {
       const sql = `UPDATE direct_room SET ?
                   WHERE room_code = '${room_code}'
                   AND member_id = '${member_id}'
-                  AND is_open = '0'
                   AND is_muted = '0'
                   AND is_blocked = '0'`;
       const updateValues = { is_seen: 0 };
@@ -130,7 +129,6 @@ class RoomFunctions {
       const sql = `UPDATE group_room SET ?
                   WHERE room_code = '${room_code}'
                   AND member_id <> '${member_id}'
-                  AND is_open = '0'
                   AND is_muted = '0'
                   AND is_blocked = '0'`;
       const updateValues = { is_seen: 0 };

@@ -36,12 +36,26 @@ class GroupRequest {
     }
   }
 
-  static async acceptRequest(request_to, request_by, request_id, room_code) {
+  static async deleteRequest(request_to, room_code) {
     try {
-      const sql = `UPDATE FROM group_requests SET ?
+      const sql = `DELETE FROM group_requests
+                   WHERE (request_to = '${request_to}'
+                   AND room_code = '${room_code}')
+                   OR
+                   (request_by = '${request_to}'
+                   AND room_code = '${room_code}')`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   cancel request   ");
+    }
+  }
+
+  static async acceptRequest(request_to, request_by, request_id) {
+    try {
+      const sql = `UPDATE group_requests SET ?
                    WHERE request_id = '${request_id}'
                    AND request_to = '${request_to}'
-                   AND room_code = '${room_code}'
                    AND request_by = '${request_by}'`;
       const updateValues = { is_accepted: 1 };
       const [data, _] = await db.query(sql, updateValues);
@@ -53,13 +67,11 @@ class GroupRequest {
 
   static async rejectRequest(request_to, request_by, request_id, room_code) {
     try {
-      const sql = `UPDATE FROM group_requests SET ?
+      const sql = `DELETE FROM group_requests
                    WHERE request_id = '${request_id}'
                    AND request_to = '${request_to}'
-                   AND room_code = '${room_code}'
                    AND request_by = '${request_by}'`;
-      const updateValues = { is_accepted: 1 };
-      const [data, _] = await db.query(sql, updateValues);
+      const [data, _] = await db.query(sql);
       return data;
     } catch (error) {
       console.log(error + "   reject request   ");
