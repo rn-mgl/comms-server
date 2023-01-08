@@ -62,7 +62,7 @@ class DirectMessage {
   static async getAllDirectMessage(room_code, limit) {
     try {
       const sql = `SELECT dm.message_id, dm.sender_id, dm.room_id, dm.room_code, dm.message_content, dm.message_file, dm.is_visible,
-                  dm.date_created, s.name AS sender_name, r.message_content AS reply_to FROM direct_messages dm
+                  dm.date_created, (CASE WHEN s.in_comms_name IS NULL THEN s.name ELSE s.in_comms_name END) AS sender_name, r.message_content AS reply_to FROM direct_messages dm
                   INNER JOIN users s ON s.user_id = dm.sender_id
                   LEFT JOIN direct_messages r ON dm.reply_to = r.message_id
                   WHERE dm.room_code = '${room_code}'
@@ -78,7 +78,7 @@ class DirectMessage {
 
   static async getLatestDirectMessage(room_code) {
     try {
-      const sql = `SELECT dm.message_content, u.name FROM direct_messages dm
+      const sql = `SELECT dm.message_content, (CASE WHEN u.in_comms_name IS NULL THEN u.name ELSE u.in_comms_name END) AS name FROM direct_messages dm
                   INNER JOIN users u ON u.user_id = dm.sender_id
                   WHERE dm.room_code = '${room_code}'
                   AND dm.is_visible = '1'

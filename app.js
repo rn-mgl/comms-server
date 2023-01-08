@@ -38,11 +38,29 @@ app.use(express.json());
 io.on("connection", (socket) => {
   console.log(socket.id);
 
-  // set global room
   let rooms = ["comms-by-rltn"];
 
-  // join the global room on connection
   socket.join(rooms);
+
+  socket.on("accept-request", ({ msg }) => {
+    socket.to(rooms).emit("reflect-accept", { msg });
+  });
+
+  socket.on("add-member", ({ msg }) => {
+    socket.to(rooms).emit("reflect-add-member", { msg });
+  });
+
+  socket.on("block", (msg) => {
+    socket.to(rooms).emit("reflect-block", { msg });
+  });
+
+  socket.on("delete-room", (msg) => {
+    socket.to(rooms).emit("reflect-delete-room", { msg });
+  });
+
+  socket.on("leave", (msg) => {
+    socket.to(rooms).emit("reflect-leave", { msg });
+  });
 
   socket.on("login", ({ msg }) => {
     socket.to(rooms).emit("reflect-login", msg);
@@ -60,8 +78,24 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("reject-request", ({ msg }) => {
+    socket.to(rooms).emit("reflect-reject", { msg });
+  });
+
+  socket.on("remove-member", (member) => {
+    socket.to(rooms).emit("reflect-remove-member", member);
+  });
+
   socket.on("send-message", ({ msg }) => {
     socket.to(rooms).emit("receive-message", msg);
+  });
+
+  socket.on("send-request", ({ msg }) => {
+    socket.to(rooms).emit("reflect-send-request", msg);
+  });
+
+  socket.on("unfriend", (msg) => {
+    socket.to(rooms).emit("reflect-unfriend", { msg });
   });
 });
 

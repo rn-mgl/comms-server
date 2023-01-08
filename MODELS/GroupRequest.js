@@ -51,6 +51,17 @@ class GroupRequest {
     }
   }
 
+  static async deleteRoomRequest(room_code) {
+    try {
+      const sql = `DELETE FROM group_requests
+                   WHERE room_code = '${room_code}'`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   cancel request   ");
+    }
+  }
+
   static async acceptRequest(request_to, request_by, request_id) {
     try {
       const sql = `UPDATE group_requests SET ?

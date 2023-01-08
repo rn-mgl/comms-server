@@ -211,7 +211,9 @@ class User {
 
   static async getAllUsersForRequest(id) {
     try {
-      const sql = `SELECT u.user_id, CONCAT(u.name, " ", u.surname) AS name, u.email, u.image
+      const sql = `SELECT u.user_id,
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS name, 
+                  u.email, u.image
                   FROM users u
                   WHERE u.user_id <> ${id}
                   AND NOT EXISTS (SELECT * FROM direct_requests dr 
@@ -228,7 +230,9 @@ class User {
 
   static async getAllFriends(id, room_code) {
     try {
-      const sql = `SELECT u.user_id, u.email, u.image, CONCAT(u.name, " ", u.surname) AS name, u.in_comms_name 
+      const sql = `SELECT u.user_id, u.email, u.image, 
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS name, 
+                  u.in_comms_name 
                   FROM direct_room dr
                   INNER JOIN users u ON u.user_id = dr.member_id
                   WHERE dr.member_id <> '${id}'
@@ -248,7 +252,9 @@ class User {
 
   static async getAllUsers(id) {
     try {
-      const sql = `SELECT u.user_id, u.email, u.image, CONCAT(u.name, " ", u.surname) AS name, u.in_comms_name 
+      const sql = `SELECT u.user_id, u.email, u.image, 
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS name, 
+                  u.in_comms_name 
                   FROM users u
                   WHERE u.user_id <> '${id}'
                   AND NOT EXISTS (SELECT 1 FROM group_requests 

@@ -62,8 +62,8 @@ class GroupMessage {
   static async getAllGroupMessage(room_code, limit) {
     try {
       const sql = `SELECT gm.message_id, gm.sender_id, gm.room_id, gm.room_code, gm.message_content, gm.message_file, 
-                  gm.is_visible, gm.date_created, u.name AS sender_name, 
-                  CASE WHEN r.message_content IS NOT NULL THEN r.message_content ELSE r.message_file END AS reply_to 
+                  gm.is_visible, gm.date_created, (CASE WHEN u.in_comms_name IS NULL THEN u.name ELSE u.in_comms_name END) AS sender_name, 
+                 (CASE WHEN r.message_content IS NOT NULL THEN r.message_content ELSE r.message_file END) AS reply_to 
                   FROM group_messages gm
                   INNER JOIN users u ON gm.sender_id = u.user_id
                   LEFT JOIN group_messages r ON gm.reply_to = r.message_id

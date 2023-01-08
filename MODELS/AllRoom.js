@@ -5,7 +5,8 @@ class AllRoom {
 
   static async getAllRooms(user_id) {
     try {
-      const sql = `SELECT dr.room_id, dr.room_code, dr.member_id, dr.is_seen, CONCAT(u.name, " ", u.surname) AS room_name, dr.date_created, "direct" AS room_type, dr.is_muted, dr.is_blocked,
+      const sql = `SELECT dr.room_id, dr.room_code, dr.member_id, dr.is_seen, (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END)  AS room_name, 
+                     dr.date_created, "direct" AS room_type, dr.is_muted, dr.is_blocked,
                      u.image AS room_image, u.is_active
                      FROM direct_room dr
                      INNER JOIN users u ON dr.member_id = u.user_id

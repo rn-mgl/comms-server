@@ -102,6 +102,22 @@ const leaveGroup = async (req, res) => {
     throw new BadRequestError(`Error in leaving group. Try again later.`);
   }
 
+  const count = await RoomFunctions.checkIfGroupEmpty(room_code);
+
+  if (count[0].member_count === 0) {
+    const deleteGroup = await GroupRoom.deleteGroup(room_code);
+
+    if (!deleteGroup) {
+      throw new BadRequestError(`Error in deleting group. Try again later.`);
+    }
+
+    const deleteRequests = await GroupRequest.deleteRoomRequest(room_code);
+
+    if (!deleteRequests) {
+      throw new BadRequestError(`Error in deleting requests. Try again later.`);
+    }
+  }
+
   res.status(StatusCodes.OK).json(data);
 };
 

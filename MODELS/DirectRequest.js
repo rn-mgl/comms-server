@@ -79,7 +79,8 @@ class DirectRequest {
   static async getAllSentRequest(id) {
     try {
       const sql = `SELECT dr.request_id, dr.request_by, dr.is_accepted, dr.date_requested,
-                  CONCAT(u.name, " ", u.surname) AS request_to_name, u.email AS request_to_email
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS request_to_name, 
+                  u.email AS request_to_email
                   FROM direct_requests dr
                   INNER JOIN users u ON dr.request_to = u.user_id
                   WHERE request_by = '${id}'
@@ -94,7 +95,8 @@ class DirectRequest {
   static async getAllReceivedRequest(id) {
     try {
       const sql = `SELECT dr.request_id, dr.request_by, dr.is_accepted, dr.date_requested,
-                  CONCAT(u.name, " ", u.surname) AS request_from_name, u.email AS request_from_email
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS request_from_name, 
+                  u.email AS request_from_email
                    FROM direct_requests dr
                    INNER JOIN users u ON dr.request_by = u.user_id
                   WHERE request_to = '${id}'

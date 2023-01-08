@@ -133,7 +133,7 @@ class GroupRoom {
 
   static async getGroupRoom(room_code, currUser) {
     try {
-      const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_admin, gr.theme, gr.is_seen, gr.date_created, gr.is_muted, gr.is_blocked,
+      const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_member, gr.is_admin, gr.theme, gr.is_seen, gr.date_created, gr.is_muted, gr.is_blocked,
                   gr.group_name AS room_name, gr.group_image AS room_image, "1" AS is_active FROM group_room gr
                     WHERE room_code = '${room_code}'
                     AND member_id = '${currUser}'
@@ -225,7 +225,9 @@ class GroupRoom {
 
   static async getAllMembers(room_code) {
     try {
-      const sql = `SELECT u.user_id, CONCAT(name, " ", surname) AS name, u.image, u.email, u.in_comms_name,
+      const sql = `SELECT u.user_id, 
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS name, 
+                  u.image, u.email, u.in_comms_name,
                   gr.is_admin
                   FROM group_room gr
                   INNER JOIN users u ON gr.member_id = u.user_id

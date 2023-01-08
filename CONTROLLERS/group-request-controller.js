@@ -67,7 +67,6 @@ const cancelRequest = async (req, res) => {
 };
 
 const acceptRequest = async (req, res) => {
-  // accept the request sent to me
   const { id } = req.user;
   const { request_by, request_id, room_code } = req.body;
 
@@ -77,10 +76,10 @@ const acceptRequest = async (req, res) => {
     throw new BadRequestError(`Error in accepting request. Try again later.`);
   }
 
-  const check = await GroupRoom.checkIfMember(id, room_code);
+  const check = await GroupRoom.checkIfMember(request_by, room_code);
 
   if (check[0].member_already) {
-    const reAdd = await GroupRoom.reAddMember(id, room_code);
+    const reAdd = await GroupRoom.reAddMember(request_by, room_code);
 
     if (!reAdd) {
       throw new BadRequestError(`Error in adding member.`);
@@ -90,7 +89,7 @@ const acceptRequest = async (req, res) => {
     return;
   }
 
-  const acceptMember = await GroupRoom.acceptGroupMember(id, room_code);
+  const acceptMember = await GroupRoom.acceptGroupMember(request_by, room_code);
 
   if (!acceptMember) {
     throw new BadRequestError(`Error in accepting request. Try again later.`);

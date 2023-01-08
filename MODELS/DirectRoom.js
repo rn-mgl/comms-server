@@ -54,7 +54,8 @@ class DirectRoom {
   static async getDirectRoom(room_code, currUser) {
     try {
       const sql = `SELECT d.room_id, d.room_code, d.member_id, "1" AS is_admin, d.theme, d.is_seen, d.date_created, d.is_muted, d.is_blocked,
-                  CONCAT(u.name, " ", u.surname) AS room_name, u.image AS room_image, u.is_active
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS room_name, 
+                  u.image AS room_image, u.is_active
 
                   FROM direct_room d
 
@@ -71,7 +72,8 @@ class DirectRoom {
 
   static async getAllDirectRoom(currUser) {
     try {
-      const sql = `SELECT d.room_id, d.room_code, d.member_id, d.is_seen, CONCAT(u.name, " ", u.surname) AS room_name, 
+      const sql = `SELECT d.room_id, d.room_code, d.member_id, d.is_seen, 
+                  (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS room_name, 
                   d.date_created, d.is_muted, d.is_blocked, "direct" AS room_type, u.image AS room_image, u.is_active
 
                   FROM direct_room d
@@ -92,7 +94,8 @@ class DirectRoom {
 
   static async getAllBlockedRoom(id) {
     try {
-      const sql = `SELECT d.room_id, d.room_code, d.member_id, d.is_seen, CONCAT(u.name, " ", u.surname) AS room_name, 
+      const sql = `SELECT d.room_id, d.room_code, d.member_id, d.is_seen, 
+            (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS room_name,  
               d.date_created, d.is_muted, d.is_blocked, "direct" AS room_type, u.image AS room_image, u.is_active
 
               FROM direct_room d

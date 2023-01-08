@@ -186,6 +186,18 @@ class RoomFunctions {
       console.log(error + "   mute direct room   ");
     }
   }
+
+  static async checkIfGroupEmpty(room_code) {
+    try {
+      const sql = `SELECT COUNT(*) AS member_count FROM group_room
+                  WHERE room_code = '${room_code}'
+                  AND is_member = '1'`;
+      const [data, _] = await db.execute(sql);
+      return data;
+    } catch (error) {
+      console.log(error + "   mute direct room   ");
+    }
+  }
 }
 
 module.exports = RoomFunctions;
