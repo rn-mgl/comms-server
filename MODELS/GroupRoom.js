@@ -133,8 +133,15 @@ class GroupRoom {
 
   static async getGroupRoom(room_code, currUser) {
     try {
-      const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_member, gr.is_admin, gr.theme, gr.is_seen, gr.date_created, gr.is_muted, gr.is_blocked,
-                  gr.group_name AS room_name, gr.group_image AS room_image, "1" AS is_active FROM group_room gr
+      const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_member, gr.is_public, gr.is_admin, gr.theme, gr.is_seen, gr.date_created, gr.is_muted, gr.is_blocked,
+                  gr.group_name AS room_name, gr.group_image AS room_image, 
+                  (CASE WHEN EXISTS (SELECT 1 FROM group_room gr 
+                              INNER JOIN users u ON u.user_id = gr.member_id
+                              WHERE gr.room_code = '${room_code}' 
+                              AND u.user_id <> '${currUser}' 
+                              AND u.is_active = '1' LIMIT 1) 
+                    THEN 1 ELSE 0 END) AS is_active 
+                    FROM group_room gr
                     WHERE room_code = '${room_code}'
                     AND member_id = '${currUser}'
                     AND is_member = '1'`;
@@ -149,7 +156,13 @@ class GroupRoom {
   static async getAllGroupRoom(user_id) {
     try {
       const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_seen, gr.group_name AS room_name, gr.date_created, "group" AS room_type, gr.is_muted, gr.is_blocked,
-                  gr.group_image AS room_image, "1" AS is_active
+                  gr.group_image AS room_image, 
+                  (CASE WHEN EXISTS (SELECT 1 FROM group_room g
+                    INNER JOIN users u ON u.user_id = g.member_id
+                    WHERE g.room_code = gr.room_code
+                    AND u.user_id <> '${user_id}' 
+                    AND u.is_active = '1' LIMIT 1) 
+                  THEN 1 ELSE 0 END) AS is_active 
                   FROM group_room gr
                   WHERE gr.member_id = '${user_id}' AND gr.is_member = '1'
                   ORDER BY gr.date_created DESC`;
@@ -163,7 +176,14 @@ class GroupRoom {
   static async getAllPublicGroupRoom(user_id) {
     try {
       const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_seen, gr.group_name AS room_name, gr.date_created, "group" AS room_type, gr.is_muted, gr.is_blocked,
-                  gr.group_image AS room_image, "1" AS is_active, CONCAT(u.name, " ", u.surname) AS admin
+                  gr.group_image AS room_image, 
+                  (CASE WHEN EXISTS (SELECT 1 FROM group_room g
+                    INNER JOIN users u ON u.user_id = g.member_id
+                    WHERE g.room_code = gr.room_code
+                    AND u.user_id <> '${user_id}' 
+                    AND u.is_active = '1' LIMIT 1) 
+                  THEN 1 ELSE 0 END) AS is_active , 
+                  CONCAT(u.name, " ", u.surname) AS admin
                   FROM group_room gr
                   INNER JOIN users u ON u.user_id = gr.member_id
                   WHERE NOT EXISTS (SELECT * FROM group_room alt_gr WHERE alt_gr.member_id = '${user_id}' 
@@ -182,7 +202,14 @@ class GroupRoom {
   static async getAllPrivateGroupRoom(user_id) {
     try {
       const sql = `SELECT gr.room_id, gr.room_code, gr.member_id, gr.is_seen, gr.group_name AS room_name, gr.date_created, "group" AS room_type, gr.is_muted, gr.is_blocked,
-                  gr.group_image AS room_image, "1" AS is_active, CONCAT(u.name, " ", u.surname) AS admin
+                  gr.group_image AS room_image, 
+                  (CASE WHEN EXISTS (SELECT 1 FROM group_room g
+                    INNER JOIN users u ON u.user_id = g.member_id
+                    WHERE g.room_code = gr.room_code
+                    AND u.user_id <> '${user_id}' 
+                    AND u.is_active = '1' LIMIT 1) 
+                  THEN 1 ELSE 0 END) AS is_active, 
+                  CONCAT(u.name, " ", u.surname) AS admin
                   FROM group_room gr
                   INNER JOIN users u ON u.user_id = gr.member_id
                   WHERE gr.is_admin = '1' AND (gr.member_id <> '${user_id}' OR gr.is_member = '0')  
@@ -248,6 +275,19 @@ class GroupRoom {
       return data;
     } catch (error) {
       console.log(error + "   delete group   ");
+    }
+  }
+
+  static async updateGroup(room_code, group_name, is_public, group_image) {
+    try {
+      const sql = `UPDATE group_room SET ?
+              WHERE room_code = '${room_code}'`;
+      const updateValues = { group_name, is_public, group_image };
+
+      const [data, _] = await db.query(sql, updateValues);
+      return data;
+    } catch (error) {
+      console.log(error);
     }
   }
 }

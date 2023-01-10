@@ -296,6 +296,20 @@ const deleteGroup = async (req, res) => {
   res.status(StatusCodes.OK).json(data);
 };
 
+const updateGroup = async (req, res) => {
+  const { room_code } = req.params;
+
+  const { group_name, is_public, group_image } = req.body;
+
+  const data = await GroupRoom.updateGroup(room_code, group_name, is_public, group_image);
+
+  if (!data) {
+    throw new BadRequestError(`Error in updating group.`);
+  }
+
+  res.status(StatusCodes.OK).json(data);
+};
+
 module.exports = {
   createGroupRoom,
   addGroupMember,
@@ -310,4 +324,5 @@ module.exports = {
   joinRoom,
   getAllMembers,
   deleteGroup,
+  updateGroup,
 };

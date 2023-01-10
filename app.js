@@ -97,6 +97,10 @@ io.on("connection", (socket) => {
   socket.on("unfriend", (msg) => {
     socket.to(rooms).emit("reflect-unfriend", { msg });
   });
+
+  socket.on("update-room", ({ msg }) => {
+    socket.to(rooms).emit("reflect-update-room", { msg });
+  });
 });
 
 app.use("/auth", authRouter);

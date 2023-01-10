@@ -19,6 +19,10 @@ router.route("/blck/rm").patch(controller.blockRoom);
 router.route("/mt/rm").patch(controller.muteRoom);
 
 router.route("/psv/:room_code").patch(controller.closeRoom);
-router.route("/mnl/:room_code").get(controller.getAllMembers).post(controller.joinRoom);
+router
+  .route("/mnl/:room_code")
+  .get(controller.getAllMembers)
+  .post(controller.joinRoom)
+  .patch(controller.updateGroup);
 
 module.exports = router;

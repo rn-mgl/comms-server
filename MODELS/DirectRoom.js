@@ -53,7 +53,7 @@ class DirectRoom {
 
   static async getDirectRoom(room_code, currUser) {
     try {
-      const sql = `SELECT d.room_id, d.room_code, d.member_id, "1" AS is_admin, d.theme, d.is_seen, d.date_created, d.is_muted, d.is_blocked,
+      const sql = `SELECT d.room_id, d.room_code, d.member_id, "1" AS is_admin, d.theme, d.is_seen, d.date_created, d.is_muted, d.is_blocked, 1 AS is_member,
                   (CASE WHEN u.in_comms_name IS NULL THEN CONCAT(u.name, " ", u.surname) ELSE u.in_comms_name END) AS room_name, 
                   u.image AS room_image, u.is_active
 
