@@ -5,6 +5,8 @@ const cloudinary = require("cloudinary").v2;
 const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
+const helmet = require("helmet");
+const xss = require("xss-clean");
 const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server, { cors: { origin: "*" } });
@@ -33,6 +35,8 @@ const errorHandlerMiddleware = require("./MIDDLEWARE/error-middleware");
 
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cors());
+app.use(helmet());
+app.use(xss());
 app.use(express.json());
 
 io.on("connection", (socket) => {
